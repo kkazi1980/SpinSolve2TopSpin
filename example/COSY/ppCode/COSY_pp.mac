@@ -1,0 +1,126 @@
+############################################################
+#
+# A pulse sequence suitable for performing a
+# gradient selected 2D COSY NMR experiment.
+#
+# H 90-evo-90-acq-delay--
+# G ------G--G---G-----G-
+#
+############################################################
+
+procedure(pulse_program,dir,mode,pars)
+
+# Expose parameters for FX3 implementation
+   if(nrArgs == 3)
+      assignlist(pars)
+   endif
+
+# Interface description (name, label, ctrl, vartype)
+  interface = ["nucleus",       "Nuclei (f2-f1)",             "tb",  "readonly_string";
+               "b1Freq1H",      "1H frequency (MHz)",         "tb",  "freq";
+               "centerFreqPPM", "Centre frequency (ppm)",     "tb",  "float";
+               "bandwidthf1PPM", "Bandwidth in f1 (ppm)",     "tb",  "float";
+               "spoilDelay",    "Spoiler duration (us)",      "tb",  "sdelay";
+               "spoilAmp",      "Spoiler amplitude",          "tb",  "float,[-15000,15000]";
+               "cosyType",      "Type of COSY",               "tm",  "string,[\"45\",\"90\"]";
+               "nrSteps",       "Number of steps",            "tb",  "integer";
+               "gradStab",      "Grad ringdown time (us)",    "tb",  "sdelay";
+               "90Amplitude1H", "90 Pulse amplitude (dB)",    "tb",  "pulseamp";
+               "pulseLength1H", "90 Pulse length (us)",       "tb",  "pulselength";
+               "dummyCycles",   "Number of dummy cycles",     "tb",  "integer,[0,16]";
+               "repTime",       "Repetition time (ms)",       "tb",  "reptime"]
+
+# Relationships to determine remaining variable values
+   relationships = ["n1          = nrPnts",
+                    "nxShim      = xshim",
+                    "nyShim      = yshim",
+                    "nzShim      = zshim",
+                    "ny          = (yshim-1.0*spoilAmp)",
+                    "nx          = (xshim-1.0*spoilAmp)",
+                    "nz          = (zshim-1.0*spoilAmp)",
+                    "dX          = COSY_pp:GetPulseLength(cosyType, pulseLength1H)",
+                    "a90         = 90Amplitude1H",
+                    "d90         = pulseLength1H",
+                    "bandwidth2  = single(bandwidthf1PPM*b1Freq1H/1000)",
+                    "wEvol       = 1e3*nrSteps/bandwidth2-d90-pgo",
+                    "dSpoil      = spoilDelay",
+                    "dStab       = gradStab",
+                    "offFreq1H   = (centerFreqPPM-wvPPMOffset1H)*b1Freq1H",
+                    "freqCh1 = b1Freq1H + offFreq1H/1e6d",
+                    "totPnts     = nrPnts",
+                    "totTime     = acqTime"]
+
+# Define the pulse sequence parameter groups and their order
+   groups = ["Pulse_sequence","Acquisition2d",
+             "Processing_Std","Display_Std","File_Settings"]
+
+# These parameters will be changed between experiments
+   variables = ["wEvol"]
+
+# Pulse sequence
+   initpp(dir) # Reset internal parameter list
+
+   # Preparation 90 RF pulse
+      pulse(1,a90,p1,d90)
+   # Evolution time         
+      wait(wEvol)    
+   # Spoiler                 
+      Spoiler:XYZ(nx, ny, nz, nxShim, nyShim, nzShim, dSpoil, dStab)
+   # Detection  pulse (90/45)
+      pulse(1,a90,p2,dX) 
+   # Spoiler          
+      Spoiler:XYZ(nx, ny, nz, nxShim, nyShim, nzShim, dSpoil, dStab)
+   # Acquire FID
+      acquire("overwrite",n1)      
+   # Spoiling sequence at end
+      Spoiler:Z(nz, nzShim, dSpoil, dStab)
+      delay(dStab) # Extra settle delay
+      Spoiler:Z(nz, nzShim, dSpoil, dStab)
+
+   lst = endpp(0) # Return parameter list
+
+# Phase cycle list
+   phaseList = [0,2,0,2; # +x,-x,+x,-x : Preparation phase
+                0,0,2,2; # +x,+x,-x,-x : 90 phase
+                0,2,0,2] # +x,-x,+x,-x : Acquire phase for n-type detection
+
+endproc(lst,groups,interface,relationships,variables,0,phaseList)
+
+# Return the second pulse length for 45 or 90 pulse
+procedure(GetPulseLength, type, pulseLength90)
+
+   if(type == "45")
+      length = pulseLength90/2
+   else
+      length = pulseLength90
+   endif
+
+endproc(length)
+
+
+#####################################################
+# Assign those parameters which should take their 
+# values from the factory defaults when making a 
+# new experiment
+#####################################################
+
+procedure(getFactoryBasedParameters, par)
+
+   specPar = SpinsolveParameterUpdater:readDSPPar(null)
+   if(specPar == null)
+      return(null)
+   endif
+   assignlist(specPar)
+
+   modelPar = ucsUtilities:getModelBasedParameters("1H",specPar)
+
+   par = ["rxGain = $modelPar->rxGain$",
+          "pulseLength1H = $PulseLength_1H$",
+          "90Amplitude1H = $PowerLevel_1H$",
+          "pulseLength1  = $PulseLength_1H$",
+          "amplitude1    = $PowerLevel_1H$",
+          "b1Freq1H      = $Frequency_1H$"]
+
+endproc(par)
+
+      

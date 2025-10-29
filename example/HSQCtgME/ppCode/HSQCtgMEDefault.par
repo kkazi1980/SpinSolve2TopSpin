@@ -1,0 +1,61 @@
+nucleus = "1H-13C"
+b1Freq1H = "common"
+centerFreq1HPPM = 4.74
+b1Freq13C = "common"
+centerFreq13CPPM = 75
+bandwidthf1PPM = 170
+nrSteps = 64
+
+pulseLength13C = "factory"
+90AmplitudeHC = "factory"
+180AmplitudeHC = "factory"
+90Amplitude13C = "factory"
+180Amplitude13C = "factory"
+
+jch = 140
+
+pulseLengthC180Dec = "factory"
+aCDec = "factory"
+
+spoilAmp = 10000
+spoilDur = 1200
+spoilAmpFinal = 10000
+spoilDurFinal = 20000
+gradStab = 500
+
+rxGain = 22
+rxChannel = "1H"
+rxPhase = 152
+nrPnts = 1024
+dwellTime = 300
+shiftPoints = 0
+nrScans = 2
+dummyCycles = 1
+repTime = 2000
+flatFilter = "yes"
+accumulate = "yes"
+usePhaseCycle = "yes"
+bandwidth = 3.33
+acqTime = 307.2
+
+zf = 2
+filter = "no"
+filterType =  "exp:0.5"
+fdPhaseCorr = "none"
+
+
+usePPMScale = "yes"
+dispRangeMinPPMf1 = -10
+dispRangeMaxPPMf1 =170
+dispRangeMinPPM = -2
+dispRangeMaxPPM = 15
+dispRange = 0
+
+saveData = "true"
+
+dataDirectory = ""
+experiment = "HSQCtgME"
+expName = "HSQCtgME"
+specID = ""
+specType = ""
+incExpNr = "no"

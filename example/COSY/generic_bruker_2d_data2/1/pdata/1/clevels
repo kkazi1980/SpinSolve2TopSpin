@@ -1,0 +1,28 @@
+##TITLE= Parameter file, TopSpin 4.5.0
+##JCAMPDX= 5.0
+##DATATYPE= Parameter Values
+##NPOINTS= 1	$$ modification sequence number
+##ORIGIN= Bruker BioSpin GmbH & Co. KG
+##OWNER= krzysztof
+$$ 2025-10-22 10:17:34.743 +0200  krzysztof@dhcp24-lan135.cent1.uw.edu.pl
+$$ /Users/krzysztof/Dropbox/Krzysztof/cooperation/ETH/Magritek2Bruker/COSY_SSexpert/251021-113525 COSY ()/generic_bruker_2d_data2/1/pdata/1/clevels
+$$ process /opt/topspin4.5.0/prog/mod/dirdata
+##$LEVELS= (0..255)
+-200960.9 -111644.9 -62025 -34458.3 -19143.5 -10635.3 -5908.5 -3282.5 -1823.6
+-1013.1 -562.8 -312.7 -173.7 -96.5 -53.6 -29.8 29.8 53.6 96.5 173.7 312.7
+562.8 1013.1 1823.6 3282.5 5908.5 10635.3 19143.5 34458.3 62025 111644.9
+200960.9 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0
+##$LEVSIGN= 3
+##$MAXLEV= 16
+##$METHOD= 0
+##$NEGBASE= -29.78681
+##$NEGINCR= 1.8
+##$POSBASE= 29.78681
+##$POSINCR= 1.8
+##END=

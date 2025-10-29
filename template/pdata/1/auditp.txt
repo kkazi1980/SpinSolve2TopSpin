@@ -1,0 +1,53 @@
+##TITLE= Audit trail, TopSpin 3.7.0
+##JCAMPDX= 5.01
+##ORIGIN= Bruker BioSpin GmbH
+##OWNER= nmrsu
+$$ /acqdata/krzysztof/fikol/4/pdata/1/auditp.txt
+##AUDIT TRAIL=  $$ (NUMBER, WHEN, WHO, WHERE, PROCESS, VERSION, WHAT)
+(   1,<2025-06-18 06:31:08.191 +0200>,<nmrsu>,<bruker800v2>,<go4>,<TopSpin 3.7.0>,
+      <created by zg on data set with UUID 'c0e5845a-4ba6-11f0-9b0d-4c72b9df47aa'
+       started at 2025-06-17 20:13:22.254 +0200,
+       POWCHK enabled, PULCHK disabled,
+       completed at 2025-06-18 06:31:08.189 +0200
+
+       configuration hash MD5:
+       9F CB CF E1 AC F6 BF 4E 58 95 0B C7 D1 05 37 B7
+       data hash MD5: 3844 * 1K
+       AB 5D F5 F3 22 5E 8E FB E0 A8 EB 81 37 80 4D CA>)
+(   2,<2025-07-20 15:18:15.538 +0200>,<nmrsu>,<bruker800v2>,<proc2d>,<TopSpin 3.7.0>,
+      <Start of raw data processing
+       xfb F2: SI = 4K WDW = 4 SSB = 2 FT_mod = 6 PKNL = 1 PHC0 = -8.934375 PHC1 = 0 F1: SI = 1K WDW = 4 SSB = 2 FT_mod = 6 FCOR = 0.5 PHC0 = 0 PHC1 = 0
+       data hash MD5: 4K * 1K
+       05 DD D3 C0 53 88 F5 74 DD EE 49 A3 F2 4E 43 77>)
+(   3,<2025-07-20 15:18:29.309 +0200>,<nmrsu>,<bruker800v2>,<proc2d>,<TopSpin 3.7.0>,
+      <pk1 fgphup F1: PHC0 = -180 PHC1 = 0
+       data hash MD5: 4K * 1K
+       AD FC 12 97 74 12 B7 F2 99 4B D5 42 3B 28 32 18>)
+(   4,<2025-07-20 15:18:33.735 +0200>,<nmrsu>,<bruker800v2>,<proc2d>,<TopSpin 3.7.0>,
+      <pk2 fgphup F2: PHC0 = 0 PHC1 = 0
+       data hash MD5: 4K * 1K
+       AD FC 12 97 74 12 B7 F2 99 4B D5 42 3B 28 32 18>)
+(   5,<2025-07-21 01:52:04.305 +0200>,<nmrsu>,<bruker800v2>,<audit>,<TopSpin 3.7.0>,
+      <user comment:
+       TITLE=70 ms HSQCETGPTITLE_END
+       data hash MD5: 4K * 1K
+       AD FC 12 97 74 12 B7 F2 99 4B D5 42 3B 28 32 18>)
+(   6,<2025-07-21 01:52:18.704 +0200>,<nmrsu>,<bruker800v2>,<audit>,<TopSpin 3.7.0>,
+      <user comment:
+       TITLE=70 ms HSQCETGPTITLE_END
+       data hash MD5: 4K * 1K
+       AD FC 12 97 74 12 B7 F2 99 4B D5 42 3B 28 32 18>)
+(   7,<2025-07-21 01:52:33.281 +0200>,<nmrsu>,<bruker800v2>,<audit>,<TopSpin 3.7.0>,
+      <user comment:
+       TITLE=70 ms TOCSYTITLE_END
+       data hash MD5: 4K * 1K
+       AD FC 12 97 74 12 B7 F2 99 4B D5 42 3B 28 32 18>)
+(   8,<2025-07-21 01:52:37.220 +0200>,<nmrsu>,<bruker800v2>,<audit>,<TopSpin 3.7.0>,
+      <user comment:
+       TITLE=70 ms TOCSYTITLE_END
+       data hash MD5: 4K * 1K
+       AD FC 12 97 74 12 B7 F2 99 4B D5 42 3B 28 32 18>)
+##END=
+
+$$ hash MD5
+$$ 5C F5 24 CF 2A 90 4E 5E 4F 11 98 B5 4E 27 3E C6

@@ -1,0 +1,188 @@
+############################################################
+#
+# A pulse sequence suitable for performing an HSQC experiment
+#
+# H 90-d-180-d-90-evo-180-evo-90-d-180-acqu-
+# C -----180-d-90-evo-----evo-90-d-180-dec--
+# G --G-----G--------G---G------G-----G----G
+#
+############################################################
+
+procedure(pulse_program,dir,mode,pars)
+
+# Expose parameters for FX3 implementation
+   if(nrArgs == 3)
+      assignlist(pars)
+   endif
+
+# Interface description (name, label, x, y, ctrl, vartype)
+  interface = ["nucleus",          "Nuclei (f2,f1)",              "tb", "readonly_string";
+               "b1Freq1H",         "1H frequency (MHz)",          "tb", "freq";
+               "centerFreq1HPPM",  "Centre freq. f2 (ppm)",       "tb", "float";
+               "pulseLength13C",   "Pulse length for all (us)",   "tb", "pulselength";
+               "90AmplitudeHC",    "1H 90-pulse amp. (dB)",       "tb", "pulseamp";
+               "180AmplitudeHC",   "1H 180-pulse amp. (dB)",      "tb", "pulseamp";
+               "b1Freq13C",        "13C Frequency (MHz)",         "tb", "freq";
+               "centerFreq13CPPM", "Centre freq. f1 (ppm)",       "tb", "float";
+               "bandwidthf1PPM",   "Bandwidth f1 (ppm)",          "tb", "float,[1,1e5]";
+               "nrSteps",          "Number of f1 steps",          "tb", "integer,[1,1024]";
+               "90Amplitude13C",   "13C 90-pulse amp. (dB)",      "tb", "pulseamp";
+               "jch",              "J(C,H) (Hz)",                 "tb", "float";
+               "aCDec",            "Decouple amplitude (dB)",     "tb", "pulseamp";
+               "pulseLengthC180",  "Decouple length 180 (us)",    "tb", "pulselength";
+               "spoilAmp",         "Homospoil amplitude",         "tb", "float,[1,1e4]";
+               "spoilDur",         "Homospoil duration (us)",     "tb", "sdelay";
+               "gradStab",         "Grad ringdown time (us)",     "tb", "sdelay";
+               "dummyCycles",      "Number of dummy cycles",      "tb", "integer,[0,16]";
+               "acqDelay",         "Pulse acqu. delay (us)",      "tb", "sdelay";
+               "repTime",          "Repetition time (ms)",        "tb", "reptime"]
+
+# Relationships to determine remaining variable values
+   relationships = ["b1Freq        = b1Freq1H",
+                    "d90C          = pulseLengthC180/2",
+                    "d270C         = 3*pulseLengthC180/2",
+                    "d360C         = 2*pulseLengthC180",   
+                    "d180C         = pulseLengthC180",
+                    "nPnts         = nrPnts",
+                    "nxShim        = xshim",
+                    "nyShim        = yshim",
+                    "nzShim        = zshim",
+                    "nxSpoil1      = xshim-(spoilAmp*xshim/(abs(xshim)+0.1))",
+                    "nySpoil1      = yshim-(spoilAmp*yshim/(abs(yshim)+0.1))",
+                    "nzSpoil1      = zshim-(spoilAmp*zshim/(abs(zshim)+0.1))",
+                    "nxSpoil2      = xshim-(0.75*spoilAmp*xshim/(abs(xshim)+0.1))",
+                    "nySpoil2      = yshim-(0.0*spoilAmp*yshim/(abs(yshim)+0.1))", # No spoil!
+                    "nzSpoil2      = zshim-(0.0*spoilAmp*zshim/(abs(zshim)+0.1))", # No spoil!
+                    "a90HC         = 90AmplitudeHC",
+                    "a180HC        = 180AmplitudeHC",
+                    "a90C          = 90Amplitude13C",
+                    "a180C         = 0",
+                    "aDec          = aCDec",
+                    "dPulse        = pulseLength13C",
+                    "dSpoil        = spoilDur",
+                    "dSpoil2       = 2*spoilDur",
+                    "dStab         = gradStab",
+                    "dCoup         = 1e6/(4*jch)-pulseLength13C/2-dSpoil-dStab",
+                    "bandwidth2    = single(bandwidthf1PPM*b1Freq13C/1000)",
+                    "wEvo          = 1e3/(2*bandwidth2)*nrSteps",
+                    "offFreq13C    = (centerFreq13CPPM-wvPPMOffset13C)*b1Freq13C",
+                    "offFreq1H     = (centerFreq1HPPM-wvPPMOffset1H)*b1Freq1H",
+                    "O1            = offFreq1H",
+                    "f1H           = double(b1Freq1H)+double(offFreq1H/1e6d)",
+                    "f13C          = double(b1Freq13C)+double(offFreq13C/1e6d)",
+                    "totPnts       = nrPnts",
+                    "totTime       = acqTime",
+                    "waltzDuration = WALTZ16:duration(pulseLengthC180/2,pgo)",
+                    "nLoops        = trunc(1000*acqTime/waltzDuration)+1"]
+
+# Define the pulse sequence parameter groups and their order
+   groups = ["Pulse_sequence","Progress","Acquisition2d",
+             "Processing_Std","Display_2D","File_Settings"]
+
+# These parameters will be changed between experiments
+   variables = ["wEvo"]
+
+# Pulse sequence
+   initpp(dir) # Reset internal parameter list
+
+      cleardata(nPnts)
+      waltzdecsetup(2,aDec,f13C) 
+    # Set the Proton and Carbon transmit frequencies
+      settxfreqs(f1H,f13C)
+    # Settling time
+      delay(100)  
+    # Proton 90 pulse      
+      pulse(1,a90HC,p1,dPulse) 
+    # Spoiler gradient                     
+      Spoiler:XYZ(nxSpoil1,nySpoil1,nzSpoil1,nxShim,nyShim,nzShim,dSpoil,dStab)
+    # Coupling delay
+      delay(dCoup)  
+    # 180 pulse on both channels
+      CompositePulse:DualPI(1, a90HC, a180HC, a90HC, p2, p3, p2, f1H,
+                            2, a90C , a180C,  a90C,  p5, p7, p5, f13C, dPulse)
+    # Spoiler gradient                     
+      Spoiler:XYZ(nxSpoil1,nySpoil1,nzSpoil1,nxShim,nyShim,nzShim,dSpoil,dStab)
+    # Coupling delay
+      delay(dCoup)
+    # Proton and carbon 90 pulse      
+      pulse(1,a90HC,p3,f1H,2,a90C,p8,f13C,dPulse)  
+    # Evolution delay
+      wait(wEvo) 
+    # Spoiler gradient                     
+      Spoiler:YZ(nySpoil1,nzSpoil1,nyShim,nzShim,dSpoil2,dStab)
+    # Proton 180 pulse
+      CompositePulse:PI(1,a90HC,a180HC,a90HC,p5,p4,p5,dPulse,dPulse,dPulse)
+      Spoiler:YZ(nySpoil1,nzSpoil1,nyShim,nzShim,dSpoil2,dStab)
+    # Evolution delay
+      wait(wEvo) 
+    # Proton and carbon 90 pulse      
+      pulse(1,a90HC,p5,f1H,2,a90C,p9,f13C,dPulse)
+    # Spoiler gradient                     
+      Spoiler:XYZ(nxSpoil1,nySpoil2,nzSpoil2,nxShim,nyShim,nzShim,dSpoil,dStab) # Just X?
+    # Coupling delay
+      delay(dCoup)
+    # 180 pulse on both channels
+      CompositePulse:DualPI(1, a90HC, a180HC, a90HC, p3, p6,  p3, f1H,
+                            2, a90C,  a180C,  a90C,  p5, p10, p5, f13C, dPulse)
+    # Spoiler gradient                     
+      Spoiler:XYZ(nxSpoil1,nySpoil1,nzSpoil1,nxShim,nyShim,nzShim,dSpoil,dStab)
+    # Coupling delay   
+      delay(dCoup) 
+    # Acquire FID with Carbon decoupling
+      acquireon(nPnts)
+        waltzdec(2, nLoops, aDec, d90C, d180C, d270C, d360C, p11, p12)      
+      acquireoff("overwrite",nPnts)
+    # Spoiler gradient                     
+      Spoiler:XYZ(nxSpoil1,nySpoil1,nzSpoil1,nxShim,nyShim,nzShim,100000,50000)
+
+   lst = endpp(0) # Return parameter list
+
+# Phase cycle list
+  phaseList  = [0,0,0,0;   # phase 1
+                0,0,0,0;   # phase 2
+                1,1,1,1;   # phase 3
+                0,0,0,0;   # phase 4
+                1,1,1,1;   # phase 5
+                0,0,0,0;   # phase 6
+                0,0,0,0;   # phase 7
+                0,2,0,2;   # phase 8
+                0,0,2,2;   # phase 9
+                0,0,0,0;   # phase 10
+                0,0,0,0;   # Decouple phase 1
+                2,2,2,2;   # Decouple phase 2
+                0,2,2,0]   # Acquire phase
+
+
+endproc(lst,groups,interface,relationships,variables,null,phaseList)
+
+#####################################################
+# Assign those parameters which should take their 
+# values from the factory defaults when making a 
+# new experiment
+#####################################################
+
+procedure(getFactoryBasedParameters, par)
+
+   specPar = SpinsolveParameterUpdater:readDSPParameters("13C")
+   if(specPar == null)
+      return(null)
+   endif
+   assignlist(specPar)
+
+   modelPar = ucsUtilities:getModelBasedParameters("13C",specPar)
+
+   90Amplitude13C = Power_level_X
+   pulseLength13C = Pulse_length_X
+   aCDec = -12
+
+   par = ["b1Freq13C       = $Frequency_X$",
+          "90Amplitude13C  = $90Amplitude13C$",
+          "pulseLength13C  = $pulseLength13C$",
+          "pulseLengthC180 = $4*pulseLength13C$",
+          "aCDec           = $aCDec$",
+          "90AmplitudeHC   = $Power_level_HX90$",
+          "180AmplitudeHC  = $Power_level_HX180$",
+          "rxGain          = $modelPar->rxGain$",
+          "b1Freq1H        = $Frequency_1H$"]
+
+endproc(par)

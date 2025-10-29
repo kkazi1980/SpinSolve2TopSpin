@@ -1,0 +1,27 @@
+##TITLE= Audit trail, TopSpin 4.5.0
+##JCAMPDX= 5.01
+##ORIGIN= Bruker BioSpin GmbH & Co. KG
+##OWNER= krzysztof
+$$ /Users/krzysztof/Dropbox/Krzysztof/cooperation/ETH/Magritek2Bruker/COSY_SSexpert/251021-113525 COSY ()/generic_bruker_2d_data2/1/audita.txt
+##AUDIT TRAIL=  $$ (NUMBER, WHEN, WHO, WHERE, PROCESS, VERSION, WHAT)
+(   1,<2025-06-18 06:31:08.191 +0200>,<nmrsu>,<bruker800v2>,<go4>,<TopSpin 3.7.0>,
+      <created by zg on data set with UUID 'c0e5845a-4ba6-11f0-9b0d-4c72b9df47aa'
+       started at 2025-06-17 20:13:22.254 +0200,
+       POWCHK enabled, PULCHK disabled,
+       completed at 2025-06-18 06:31:08.189 +0200
+
+       configuration hash MD5:
+       9F CB CF E1 AC F6 BF 4E 58 95 0B C7 D1 05 37 B7
+       data hash MD5: 3844 * 1K
+       AB 5D F5 F3 22 5E 8E FB E0 A8 EB 81 37 80 4D CA>)
+$$ /Users/krzysztof/Dropbox/Krzysztof/cooperation/ETH/Magritek2Bruker/COSY_SSexpert/251021-113525 COSY ()/generic_bruker_2d_data/1/audita.txt
+(   2,<2025-10-22T10:15:50.046+0200>,<krzysztof>,<dhcp24-lan135.cent1.uw.edu.pl>,<cprserver>,<TopSpin 4.5.0>,
+      <changed parameter F2 DIGTYP to DRX>)
+(   3,<2025-10-22T10:17:34.716+0200>,<krzysztof>,<dhcp24-lan135.cent1.uw.edu.pl>,<dirdata>,<TopSpin 4.5.0>,
+      <wrpa from 1 1 "generic_bruker_2d_data" "/Users/krzysztof/Dropbox/Krzysztof/cooperation/ETH/Magritek2Bruker/COSY_SSexpert/251021-113525 COSY ()"
+       data hash MD5: 8K * 128
+       B5 CF A9 D6 C8 FE BD 61 8F 91 AC 28 43 D5 0A 1C>)
+##END=
+
+$$ hash MD5
+$$ ED 3E A8 E4 24 F8 9B 5D 79 43 DB B5 7E 5D 2C 7E

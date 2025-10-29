@@ -1,0 +1,28 @@
+##TITLE= Parameter file, TopSpin 4.5.0
+##JCAMPDX= 5.0
+##DATATYPE= Parameter Values
+##NPOINTS= 5	$$ modification sequence number
+##ORIGIN= Bruker BioSpin GmbH
+##OWNER= nmrsu
+$$ 2025-10-22 10:21:15.461 +0200  krzysztof@dhcp24-lan135.cent1.uw.edu.pl
+$$ /Users/krzysztof/Dropbox/Krzysztof/cooperation/ETH/Magritek2Bruker/COSY_SSexpert/251021-113525 COSY ()/generic_bruker_2d_data/1/acqu2
+$$ process /opt/topspin4.5.0/prog/mod/dataserver
+##$ACQT0= 0
+##$BF1= 201.076645655
+##$DE= 26.64109
+##$DECIM= 1
+##$DR= 16
+##$FW= 14800
+##$FnILOOP= 0
+##$FnMODE= 4
+##$NUC1= <13C>
+##$NusJSP= 0
+##$NusT2= 1
+##$NusTD= 0
+##$O1= 15616.568
+##$ProjAngle= 0
+##$SFO1= 201.092262223
+##$SW= 58.3314338917332
+##$SW_h= 11730
+##$TD= 128
+##END=

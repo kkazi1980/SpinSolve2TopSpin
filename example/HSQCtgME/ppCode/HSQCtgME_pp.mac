@@ -1,0 +1,254 @@
+######################################################################################
+#
+# A pulse sequence suitable for performing an HSQCtgME experiment
+#
+# H  45-d1-180-d1-135-90-d2-180-d2-90----evo-180-evo-d1-180-d1----90-d2-180-d2-acq-
+# C  ---d1-180-d1--------d2-180-d2----90-evo-----evo-d1-180-d1-90----d2-180-d2-dec-
+# G  ----------------G---------------G---------------------------G----------------G
+#
+######################################################################################
+
+
+procedure(pulse_program,dir,mode,pars);if(nrArgs == 3);assignlist(pars);endif;
+
+# Interface description (name, label, control, vartype)
+  interface = ["nucleus",             "Nuclei (f2-f1)",                 "tb", "readonly_string";
+               "b1Freq1H",            "1H frequency (MHz)",             "tb", "freq";
+               "centerFreq1HPPM",     "Centre freq. f2 (ppm)",          "tb", "float";
+               "b1Freq13C",           "13C frequency (MHz)",            "tb", "freq";
+               "centerFreq13CPPM",    "Centre freq. f1 (ppm)",          "tb", "float";
+               "bandwidthf1PPM",      "Bandwidth f1 (ppm)",             "tb", "float,[1,1e5]";
+               "nrSteps",             "Number of f1 steps",             "tb", "integer,[1,1024]";
+
+               "pulseLength13C",      "Pulse length  All (us)",         "tb", "pulselength";
+               "90AmplitudeHC",       " 90 Pulse Amp  1H (dB)",         "tb", "pulseamp";
+               "180AmplitudeHC",      "180 Pulse Amp  1H (dB)",         "tb", "pulseamp";
+               "90Amplitude13C",      " 90 Pulse Amp 13C (dB)",         "tb", "pulseamp";
+               "180Amplitude13C",     "180 Pulse Amp 13C (dB)",         "tb", "pulseamp";
+               "jch",                 "J(C,H) (Hz)",                    "tb", "float";
+               "pulseLengthC180Dec",  "Pulse length 180 Dec (us)",  "tb", "pulselength";
+               "aCDec",               "Decouple amplitude (dB)",        "tb", "pulseamp";
+
+               "spoilAmp",            "Spoil Amplitude",                "tb", "float,[1,2e4]";
+               "spoilDur",            "Spoil duration (us)",            "tb", "sdelay";
+               "gradStab",            "Grad ringdown time (us)",        "tb", "sdelay";
+               "spoilAmpFinal",       "Spoil Amp. Final",               "tb", "float,[1,2e4]";
+               "spoilDurFinal",       "Spoil duration Final (us)",      "tb", "sdelay";
+             
+               "dummyCycles",         "Number of dummy cycles",   "tb", "integer,[0,16]";
+               "repTime",             "Repetition time (ms)",     "tb", "reptime"]
+
+# Relationships to determine remaining variable values
+   relationships = ["b1Freq        = b1Freq1H",
+                    "offFreq1H     = (centerFreq1HPPM-wvPPMOffset1H)*b1Freq1H",
+                    "offFreq13C    = (centerFreq13CPPM-wvPPMOffset13C)*b1Freq13C",
+                    "O1            = offFreq1H",
+                    "f1H           = double(b1Freq1H)+double(offFreq1H/1e6d)",
+                    "f13C          = double(b1Freq13C)+double(offFreq13C/1e6d)",
+
+                    "nPnts         = nrPnts",
+                  
+                    "nxShim        = xshim",
+                    "nyShim        = yshim",
+                    "nzShim        = zshim",
+                 
+                    "nxSpoil       = xshim-(spoilAmp*xshim/(abs(xshim)+0.1))",
+                    "nySpoil       = yshim-(spoilAmp*yshim/(abs(yshim)+0.1))",
+                    "nzSpoil       = zshim-(spoilAmp*zshim/(abs(zshim)+0.1))",
+                   
+                    "nxSpoilFinal   = xshim-(spoilAmpFinal*xshim/(abs(xshim)+0.1))",
+                    "nySpoilFinal   = yshim-(spoilAmpFinal*yshim/(abs(yshim)+0.1))",
+                    "nzSpoilFinal   = zshim-(spoilAmpFinal*zshim/(abs(zshim)+0.1))",
+
+                    "a0            = 0",
+                    "a90HC         = 90AmplitudeHC",
+                    "a180HC        = 180AmplitudeHC",
+                    "a90C          = 90Amplitude13C",
+                    "a180C         = 180Amplitude13C",
+                    "aDec          = aCDec",
+                  
+                    "dPulse        = pulseLength13C",
+                    "d90C          = pulseLength13C*0.5",
+                    "d45C          = pulseLength13C*0.5",
+                    "d135C         = pulseLength13C*1.5",
+                    "d90Cdec       = 1*pulseLengthC180Dec/2",
+                    "d180Cdec      = 1*pulseLengthC180Dec",                   
+                    "d270Cdec      = 3*pulseLengthC180Dec/2",
+                    "d360Cdec      = 2*pulseLengthC180Dec", 
+                   
+                    "dSpoil        = 1*spoilDur",
+                    "dSpoil3       = 3*spoilDur",
+                    "dSpoil4       = 4*spoilDur",
+                    "dSpoil5       = 5*spoilDur",
+                 
+                    "dSpoilFinal   = spoilDurFinal",
+                    "dStab         = gradStab",
+                  
+                    "dAcq          = 0.85*dwellTime-38",                                             # Delay Acq to eliminate ph1
+                    "BalanceME     = 2/3*dPulse-7",                                                  # Delay to balance ME 
+                    "dCoup1        = 1e6/(2*jch)-2*pulseLength13C  -3*pgo",                          # Delay 1/2J Tango
+                    "dCoup2        = 1e6/(4*jch)-2*pulseLength13C  -2*pgo",                          # Delay 1/4J INEPT
+                    "dCoup1a       = 1e6/(2*jch)-3*pulseLength13C/2-2*pgo-dSpoil-dStab",             # Delay ME first
+                    "dCoup1b       = 1e6/(2*jch)-2*pulseLength13C  -2*pgo-dSpoil-dStab",             # Delay ME second
+                    "dCoup3        = 1e6/(4*jch)-3*pulseLength13C/2-1*pgo-dAcq",                     # Delay INEPT before Acq
+                    "dRef          = 3*dPulse+4*pgo",                                                # Delay Refocusing along t1
+                     
+                   
+                    "bandwidth2    = single(bandwidthf1PPM*b1Freq13C/1000)",
+                    "wEvo          = 1e3/(2*bandwidth2)",
+                    "totPnts       = nrPnts",
+                    "totTime       = acqTime",
+                    "waltzDuration = WALTZ16:duration(pulseLengthC180Dec/2,pgo)",
+                    "nLoops        = trunc(1000*acqTime/waltzDuration)+1"]
+
+# Define the pulse program parameters groups and their order
+   groups = ["Pulse_sequence","Progress","Acquisition2d",
+           "Processing_Std","Display_2D","File_Settings"]
+
+# These parameters will be changed between experiments
+   variables = ["wEvo"]
+
+# x and y spacing between controls
+   dim = [190,26]
+
+# Pulse sequence
+   initpp(dir) # Reset internal parameter list
+
+      cleardata(nPnts)
+     # Set the Proton and Carbon transmit frequencies
+      settxfreqs(f1H,f13C)
+     # Settling delay
+      delay(100)     
+    
+     # TANGO module ################
+     # Proton 45 pulse      
+      pulse(1,a90HC,p1,d45C) 
+     # 1/2J delay
+      delay(dCoup1)  
+     # 180 pulse on both channels   
+      CompositePulse:DualPI(1, a90HC, a180HC, a90HC, p2, p3, p2, f1H,
+                            2, a90C,  a180C,  a90C,  p5, p1, p5, f13C, dPulse)
+     # 1/2J delay  
+      delay(dCoup1)  
+     # Proton 135 pulse      
+      pulse(1,a90HC,p7,d135C)
+     # Spoiler gradient   
+      
+    #  Spoiler:Z(nzSpoil,nzShim,dSpoil5,dStab)
+      Spoiler:XYZ(nxSpoil,nySpoil,nzSpoil,nxShim,nyShim,nzShim,dSpoil3,dStab)
+    # End of TANGO module ##########
+
+ 
+
+     # Proton 90 pulse      
+      pulse(1,a90HC,p1,dPulse) 
+     # Coupling delay   
+      delay(dCoup2)
+     # Proton and Carbon 180 pulse   
+      CompositePulse:DualPI(1 ,a90HC, a180HC, a90HC, p2, p3, p2, f1H,
+                            2, a90C,  a180C,  a90C,  p5, p7, p5, f13C, dPulse)
+     # Coupling delay   
+      delay(dCoup2)  
+     # Split 90 HC pulse into separate H and C pulses - Z filter between two 
+      pulse(1,a90HC,p3,dPulse)  # 90 H RF pulse
+      delay(10)  
+      Spoiler:XYZ(nxSpoil,nySpoil,nzSpoil,nxShim,nyShim,nzShim,dSpoil5,dStab)
+
+
+           # Carbon 90 pulse       
+               pulse(2,a0,p8,d90C) 
+           # Evolution delay   
+               wait(wEvo) 
+           # Proton 180 pulse   
+               CompositePulse:PI(1 ,a90HC, a180HC,a90HC, p5, p4, p5, dPulse, dPulse, dPulse)
+           # Evolution delay     
+               wait(wEvo)    
+            
+          # Refocus along t1 to get access to t1=0 and remove phase 1 along f1 ----------------
+               CompositePulse:PI(2, a90C,  a180C,  a90C,  p3, p1, p3, dPulse, dPulse, dPulse)   
+                          
+               delay(dRef) 
+            
+           # ------------- Mutiplicity-editing -------------------------
+           # 1/2J delay 
+               Spoiler:Z(nzSpoil,nzShim,dSpoil,dStab) 
+               delay(dCoup1a)
+           # Proton and Carbon 180 pulse    
+               CompositePulse:DualPI(1 ,a90HC, a180HC, a90HC, p3, p1, p3, f1H,
+                                     2, a90C,  a180C,  a90C,  p3, p1, p3, f13C, dPulse)
+           # 1/2J delay  
+               Spoiler:Z(nzSpoil,nzShim,dSpoil,dStab)
+               delay(dCoup1b)
+           # ------------- End of ME --------------------------
+          
+     # Split 90 HC pulse into separate C and H pulses - Z filter between two 
+      pulse(2,a0,p9,d90C)  # 90 C RF pulse
+      delay(10)
+      Spoiler:XYZ(nxSpoil,nySpoil,nzSpoil,nxShim,nyShim,nzShim,dSpoil4,dStab)
+    
+      pulse(1,a90HC,p5,dPulse)  # 90 H RF pulse
+     # 1/4J delay    
+      delay(dCoup2)  
+     # Proton and Carbon 180 pulse       
+      CompositePulse:DualPI(1 ,a90HC,a180HC, a90HC, p3, p6,  p3, f1H,
+                            2, a90C, a180C,  a90C,  p5, p10, p5, f13C, dPulse)
+     # 1/4J delay    
+      delay(dCoup3) 
+     # Acquire FID with Carbon decoupling  
+      acquireon(nPnts)
+      loop(l1,nLoops)
+         WALTZ16(2, aDec, d90Cdec, d180Cdec, d270Cdec, d360Cdec, p11, p12)           
+      endloop(l1)   
+      acquireoff("overwrite",nPnts)
+    
+ # Spoiler gradient                        
+      Spoiler:XYZ(nxSpoilFinal,nySpoilFinal,nzSpoilFinal,nxShim,nyShim,nzShim,dSpoilFinal,dStab)
+
+   lst = endpp(0) # Return parameter list
+
+# Phase cycle list
+  phaseList  = [0,0,0,0;   # phase 1
+                0,0,0,0;   # phase 2
+                1,1,1,1;   # phase 3
+                0,0,0,0;   # phase 4
+                1,1,1,1;   # phase 5
+                0,0,0,0;   # phase 6
+                0,0,0,0;   # phase 7
+                0,2,0,2;   # phase 8
+                0,0,2,2;   # phase 9
+                0,0,0,0;   # phase 10
+                0,0,0,0;   # Decouple phase 1
+                2,2,2,2;   # Decouple phase 2
+                2,0,0,2]   # Acquire phase
+
+endproc(lst,groups,interface,relationships,variables,dim=null,phaseList)
+
+
+#####################################################
+# Assign those parameters which should take their 
+# values from the factory defaults when making a 
+# new experiment
+#####################################################
+
+procedure(getFactoryBasedParameters, par)
+
+   specPar = SpinsolveParameterUpdater:readDSPParameters("13C")
+   if(specPar == null)
+      return(null)
+   endif
+   assignlist(specPar)
+
+   modelPar = ucsUtilities:getModelBasedParameters("13C",specPar)
+
+   par = ["b1Freq1H           = $Frequency_1H$",
+          "b1Freq13C          = $Frequency_X$",
+          "pulseLength13C     = $Pulse_length_X$",         
+          "90AmplitudeHC      = $Power_level_HX90$",
+          "180AmplitudeHC     = $Power_level_HX180$",  
+          "90Amplitude13C     = $Power_level_X$",
+          "180Amplitude13C    = 0",    
+          "pulseLengthC180Dec = $4*Pulse_length_X$",
+          "aCDec              = -12"]
+
+endproc(par)
+
