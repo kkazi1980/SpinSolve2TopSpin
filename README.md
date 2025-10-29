@@ -19,7 +19,7 @@ destination_folder = 'example/1002'
 quad=1 #1 for MC, 2 for States, 3 for Echo-Antiecho
 ```
 
-After converting run xfb and sref in TopSpin to get the spectrum with proper referencing.
+After converting, run **xfb** and **sref** in TopSpin to obtain the spectrum with proper referencing.
 
 Currently, apodzation is **NOT** transferred from the Magritek proc.par file.
 
